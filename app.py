@@ -17,7 +17,7 @@ st.set_page_config(
     layout="wide",
 )
 
-API_URL = os.getenv("API_URL")
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 # ── Helpers de API ──────────────────────────────────────────────────
 def get_auth_headers():
