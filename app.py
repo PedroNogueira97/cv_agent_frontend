@@ -17,7 +17,7 @@ st.set_page_config(
     layout="wide",
 )
 
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = os.getenv("API_URL").rstrip("/")
 
 # ── Helpers de API ──────────────────────────────────────────────────
 def get_auth_headers():
@@ -31,7 +31,9 @@ def api_register(username, email, password):
             "username": username,
             "email": email,
             "password": password
-        })
+        },
+        timeout=30
+        )
         if response.status_code == 200:
             return True, "Cadastrado com sucesso!"
         return False, response.json().get("detail", "Erro desconhecido")
@@ -43,7 +45,9 @@ def api_login(username, password):
         response = requests.post(f"{API_URL}/auth/login", json={
             "username": username,
             "password": password
-        })
+        },
+        timeout=30
+        )
         if response.status_code == 200:
             return True, response.json()["access_token"], username
         
@@ -97,9 +101,9 @@ if "token" not in st.session_state:
 def login_ui():
     st.title("🛡️ Login Seguro — CV Agent")
     
-    tab1, tab2 = st.tabs(["Login", "Cadastro"])
+    tab1 = st.tabs(["Login"])
     
-    with tab1:
+    with tab1[0]:
         with st.form("login_form"):
             user = st.text_input("Usuário")
             pw = st.text_input("Senha", type="password")
@@ -114,26 +118,26 @@ def login_ui():
                 else:
                     st.error(result)
                     
-    with tab2:
-        with st.form("register_form"):
-            new_user = st.text_input("Novo Usuário")
-            new_email = st.text_input("E-mail")
-            new_pw = st.text_input("Nova Senha", type="password")
-            confirm_pw = st.text_input("Confirme a Senha", type="password")
-            register = st.form_submit_button("Cadastrar", use_container_width=True)
-            if register:
-                if not new_email or "@" not in new_email:
-                    st.error("Por favor, insira um e-mail válido.")
-                elif new_pw != confirm_pw:
-                    st.error("As senhas não coincidem.")
-                elif len(new_pw) < 6:
-                    st.error("A senha deve ter pelo menos 6 caracteres.")
-                else:
-                    success, msg = api_register(new_user, new_email, new_pw)
-                    if success:
-                        st.success(msg)
-                    else:
-                        st.error(msg)
+    # with tab2:
+    #     with st.form("register_form"):
+    #         new_user = st.text_input("Novo Usuário")
+    #         new_email = st.text_input("E-mail")
+    #         new_pw = st.text_input("Nova Senha", type="password")
+    #         confirm_pw = st.text_input("Confirme a Senha", type="password")
+    #         register = st.form_submit_button("Cadastrar", use_container_width=True)
+    #         if register:
+    #             if not new_email or "@" not in new_email:
+    #                 st.error("Por favor, insira um e-mail válido.")
+    #             elif new_pw != confirm_pw:
+    #                 st.error("As senhas não coincidem.")
+    #             elif len(new_pw) < 6:
+    #                 st.error("A senha deve ter pelo menos 6 caracteres.")
+    #             else:
+    #                 success, msg = api_register(new_user, new_email, new_pw)
+    #                 if success:
+    #                     st.success(msg)
+    #                 else:
+    #                     st.error(msg)
 
 # ── Fluxo Principal ─────────────────────────────────────────────────
 if not st.session_state.authenticated:
